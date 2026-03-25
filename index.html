@@ -76,7 +76,19 @@
         document.getElementById('message').textContent = 'You can close this window and return to Google Sheets.';
         setTimeout(function() { window.close(); }, 2000);
       } else {
-        // Fallback: show the code for manual copy
+        // Fallback: redirect to Apps Script web app to exchange code server-side
+        // The web app URL is encoded in the state parameter
+        try {
+          var stateData = JSON.parse(atob(state.replace(/-/g, '+').replace(/_/g, '/')));
+          if (stateData.webAppUrl) {
+            document.getElementById('title').textContent = 'Completing authorization...';
+            document.getElementById('message').textContent = 'Redirecting...';
+            window.location.href = stateData.webAppUrl + '?code=' + encodeURIComponent(code) + '&state=' + encodeURIComponent(state);
+            return;
+          }
+        } catch (e) {}
+
+        // Final fallback: show the code for manual copy
         document.getElementById('icon').textContent = '\u2705';
         document.getElementById('title').textContent = 'Authorization Successful';
         document.getElementById('message').innerHTML =
