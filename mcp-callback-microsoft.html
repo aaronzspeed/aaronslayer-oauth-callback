@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AaronSlayer MCP — Microsoft</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#1a1a2e;color:#e0e0e0}
+    .card{background:#16213e;border-radius:12px;padding:40px;text-align:center;max-width:440px;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+    .icon{font-size:48px;margin-bottom:16px}
+    h2{margin:0 0 12px;color:#fff}
+    p{color:#aaa;margin:8px 0;line-height:1.5}
+    .error{color:#ff6b6b}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon" id="icon">&#9203;</div>
+    <h2 id="title">Forwarding Microsoft OAuth&hellip;</h2>
+    <p id="message">Completing the handshake.</p>
+  </div>
+  <script>
+    (function() {
+      var WORKER_CALLBACK = 'https://aaronslayer-mcp.aaronzspeed.workers.dev/admin/callback/microsoft';
+      var p = new URLSearchParams(window.location.search);
+      var code = p.get('code'), state = p.get('state'), err = p.get('error');
+      function fail(d){document.getElementById('icon').textContent='❌';document.getElementById('title').textContent='Authorization failed';var m=document.getElementById('message');m.className='error';m.textContent=d;}
+      if (err) return fail('Microsoft returned: '+err);
+      if (!code||!state) return fail('Missing code or state from Microsoft.');
+      var t = WORKER_CALLBACK+'?'+new URLSearchParams({code:code,state:state}).toString();
+      try { window.location.replace(t); } catch (e) {
+        document.getElementById('icon').textContent='⚠';
+        document.getElementById('title').textContent='Click to continue';
+        document.getElementById('message').innerHTML='<a href="'+t+'" style="color:#60a5fa">Continue to AaronSlayer MCP</a>';
+      }
+    })();
+  </script>
+</body>
+</html>
