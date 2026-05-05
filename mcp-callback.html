@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AaronSlayer MCP — Authorization Forwarding</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+    .card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      max-width: 440px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h2 { margin: 0 0 12px; color: #fff; }
+    p { color: #aaa; margin: 8px 0; line-height: 1.5; }
+    .error { color: #ff6b6b; }
+    code { background: #0f1729; padding: 2px 6px; border-radius: 3px; color: #cbd5e1; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon" id="icon">&#9203;</div>
+    <h2 id="title">Forwarding to AaronSlayer MCP&hellip;</h2>
+    <p id="message">Completing the OAuth handshake.</p>
+  </div>
+  <script>
+    (function() {
+      // GitHub Pages can be added to Google's authorised-domains list
+      // (workers.dev cannot — Cloudflare owns the apex). This page exists
+      // solely to receive Google's redirect with ?code=...&state=... and
+      // forward both to the Cloudflare Worker, which exchanges the code
+      // for tokens and stores them in KV.
+      var WORKER_CALLBACK = 'https://aaronslayer-mcp.aaronzspeed.workers.dev/admin/callback/google';
+
+      var params = new URLSearchParams(window.location.search);
+      var code = params.get('code');
+      var state = params.get('state');
+      var error = params.get('error');
+
+      function showError(detail) {
+        document.getElementById('icon').textContent = '❌';
+        document.getElementById('title').textContent = 'Authorization failed';
+        var msg = document.getElementById('message');
+        msg.className = 'error';
+        msg.textContent = detail;
+      }
+
+      if (error) return showError('Google returned: ' + error);
+      if (!code || !state) return showError('Missing code or state parameter from Google.');
+
+      var target = WORKER_CALLBACK + '?' + new URLSearchParams({ code: code, state: state }).toString();
+
+      // Best-effort: redirect immediately. Browsers preserve TLS so the code
+      // never hits an unencrypted hop. If the redirect is blocked, fall back
+      // to a click-through link.
+      try {
+        window.location.replace(target);
+      } catch (e) {
+        document.getElementById('icon').textContent = '⚠';
+        document.getElementById('title').textContent = 'Click to continue';
+        document.getElementById('message').innerHTML =
+          'Automatic redirect blocked. <a href="' + target + '" style="color:#60a5fa">Continue to AaronSlayer MCP</a>';
+      }
+    })();
+  </script>
+</body>
+</html>
